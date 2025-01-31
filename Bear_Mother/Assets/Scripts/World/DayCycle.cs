@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal; 
 
 public class DayCycle : MonoBehaviour
 {
@@ -31,6 +32,11 @@ public class DayCycle : MonoBehaviour
     public delegate void NightEvent();
     public static event NightEvent OnNight;
 
+    ////===맹 추가
+    [Header("Lighting Settings")]
+    [SerializeField] private Light2D globalLight; 
+    
+
     // ===============================================================================================================
 
     private void Awake()
@@ -40,6 +46,12 @@ public class DayCycle : MonoBehaviour
 
         sceneManager = FindObjectOfType<SceneManager>();
         UI = FindObjectOfType<DayCycleUI>();
+        ////=== 맹추가
+        GameObject lightObj = GameObject.Find("Light2D_NightShadow"); //
+        if (lightObj != null)
+        {
+            globalLight = lightObj.GetComponent<Light2D>();
+        }
     }
 
     private void Start()
@@ -98,6 +110,9 @@ public class DayCycle : MonoBehaviour
 
                         OnHalfDay?.Invoke();
                         halfDayRaised = false;
+
+                        /////
+                        sendSignalToLight2D(); // 밤이 시작되면 조명 변경
                     }
                     else
                     {
@@ -116,4 +131,32 @@ public class DayCycle : MonoBehaviour
     {
         sceneManager.LoadEnding();
     }
+
+     //// -- 맹 추가 코드 Global light 2D 변경
+     public void sendSignalToLight2D()
+    {
+      //  Debug.Log("시그널보내~");
+        if (globalLight != null)
+        {
+            if (CurrentState == State.DAY)
+            {
+                globalLight.intensity = 1.0f;  // 낮에는 밝게
+                globalLight.color = Color.white; 
+            }
+            else
+            {
+                globalLight.intensity =1f;  // 밤에는 어둡게
+                 globalLight.color = Color.black; 
+                //globalLight.color = new Color(0.1f, 0.1f, 0.2f); // 어두운 파란색
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Global Light 2D가 설정되지 않았습니다!");
+        }
+    }
+
+   
+    
+    
 }
